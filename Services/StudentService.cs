@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using SecurePrivacyExercise.Config;
 using SecurePrivacyExercise.Models;
 using System;
@@ -10,35 +11,62 @@ namespace SecurePrivacyExercise.Services
 {
     public class StudentService
     {
-        private readonly IMongoCollection<Student> _students;
-
+        private IMongoCollection<Student> _students;
+        private IMongoDatabase _database;
+        private MongoClient _client;
         public StudentService(IDatabaseSettings settings)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var database = client.GetDatabase(settings.DatabaseName);
+            _client = new MongoClient(settings.ConnectionString);
+            _database = _client.GetDatabase(settings.DatabaseName);
 
-            _students = database.GetCollection<Student>(settings.StudentCollectionName);
+            if(!IsCollectionExistsAsync(_database, "Student"))
+            {
+                _database.CreateCollection("Student");
+            }
+
+
+            _students = _database.GetCollection<Student>("Student");
         }
 
-        public List<Student> Get() =>
-            _students.Find(book => true).ToList();
+        public List<Student> Get()
+        {
+           return  _students.Find(student => true).ToList();
+        }
+            
 
         public Student Get(string id) =>
-            _students.Find<Student>(book => book.Id == id).FirstOrDefault();
+            _students.Find<Student>(student => student.Id == id).FirstOrDefault();
 
-        public Student Create(Student book)
+        public Student Create(Student student)
         {
-            _students.InsertOne(book);
-            return book;
+            student.CreationTime = DateTime.UtcNow;
+            _students.InsertOne(student);
+            return student;
         }
 
-        public void Update(string id, Student bookIn) =>
-            _students.ReplaceOne(book => book.Id == id, bookIn);
-
-        public void Remove(Student bookIn) =>
-            _students.DeleteOne(book => book.Id == bookIn.Id);
+        public void Update(string id, Student student) =>
+            _students.ReplaceOne(book => book.Id == id, student);
 
         public void Remove(string id) =>
-            _students.DeleteOne(book => book.Id == id);
+            _students.DeleteOne(stu => stu.Id == id);
+
+        /// <summary>
+        /// Determines if a collection exists
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="collectionName"></param>
+        /// <returns></returns>
+        private bool IsCollectionExistsAsync(IMongoDatabase database, string collectionName)
+        {
+           
+            IMongoCollection<BsonDocument> mongoCollection = database.GetCollection<BsonDocument>(collectionName);
+
+            if (mongoCollection != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
