@@ -39,6 +39,9 @@ namespace SecurePrivacyExercise.Controllers
             return Ok(student);
         }
 
+        [HttpGet("grouped-students")]
+        public async Task<IActionResult> GroupStudentByAge() => Ok(await _studentService.GroupStudentsByAge());
+
         [HttpPost]
         public async Task<IActionResult> Create(Student model)
         {

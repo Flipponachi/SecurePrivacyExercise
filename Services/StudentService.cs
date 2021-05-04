@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using SecurePrivacyExercise.Config;
+using SecurePrivacyExercise.Dtos;
 using SecurePrivacyExercise.Models;
 using System;
 using System.Collections.Generic;
@@ -49,6 +50,18 @@ namespace SecurePrivacyExercise.Services
 
         public void Remove(string id) =>
             _students.DeleteOne(stu => stu.Id == id);
+
+        /// <summary>
+        /// Get all students by age and their count
+        /// </summary>
+        public async Task<List<GroupedStudentDto>> GroupStudentsByAge()
+        {
+            var aggregate = _students
+                .Aggregate()
+                .Group(u => u.Age, ad => new GroupedStudentDto { Age = ad.Key, TotalCount = ad.Sum(u => 1) });
+
+            return await aggregate.ToListAsync();
+        }
 
         /// <summary>
         /// Determines if a collection exists
