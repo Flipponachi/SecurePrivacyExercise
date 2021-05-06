@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SecurePrivacyExercise.Dto;
 using SecurePrivacyExercise.Models;
 using SecurePrivacyExercise.Services;
 using System;
@@ -14,20 +16,28 @@ namespace SecurePrivacyExercise.Controllers
     public class StudentController : ControllerBase
     {
         private readonly StudentService _studentService;
-
-        public StudentController(StudentService studentService)
+        private IMapper _mapper;
+        public StudentController(StudentService studentService, IMapper mapper)
         {
             _studentService = studentService;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Endpoint to get all students
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> Get() => Ok(_studentService.Get());
+        public async Task<IActionResult> Get()
+        {
+            List<Student> value = _studentService.Get();
+
+            List<DetailsStudentDto> data = _mapper.Map<List<DetailsStudentDto>>(value);
+            return Ok(data);
+        }
+
 
         [HttpGet("{id}", Name = "GetStudent")]
-        public async Task<IActionResult> Get(string id)
+        public async Task<IActionResult> GetById(string id)
         {
             var student = _studentService.Get(id);
 
@@ -36,18 +46,19 @@ namespace SecurePrivacyExercise.Controllers
                 return NotFound();
             }
 
-            return Ok(student);
+            return Ok(_mapper.Map<DetailsStudentDto>(student));
         }
 
         [HttpGet("grouped-students")]
         public async Task<IActionResult> GroupStudentByAge() => Ok(await _studentService.GroupStudentsByAge());
 
         [HttpPost]
-        public async Task<IActionResult> Create(Student model)
+        public async Task<IActionResult> Create(CreateStudentDto model)
         {
-            _studentService.Create(model);
+            Student student = _mapper.Map<Student>(model);
+            _studentService.Create(student);
 
-            return CreatedAtRoute("GetStudent", new { id = model.Id.ToString() }, model);
+            return CreatedAtRoute("GetStudent", new { id = student.Id.ToString() }, student);
         }
 
         [HttpPut("{id}")]
@@ -62,7 +73,7 @@ namespace SecurePrivacyExercise.Controllers
 
             _studentService.Update(id, model);
 
-            return NoContent();
+            return Ok(new { message = "Updated Successfully" });
         }
 
         [HttpDelete("{id}")]
@@ -77,7 +88,7 @@ namespace SecurePrivacyExercise.Controllers
 
             _studentService.Remove(student.Id);
 
-            return NoContent();
+            return Ok(new { message = "Deleted Successfully" });
         }
 
 

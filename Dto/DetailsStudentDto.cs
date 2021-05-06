@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SecurePrivacyExercise.Dto
 {
-    public class EditStudentDto
+    public class DetailsStudentDto
     {
         public string Id { get; set; }
 
@@ -14,5 +11,7 @@ namespace SecurePrivacyExercise.Dto
         public Int32? Age { get; set; }
 
         public string Address { get; set; }
+
+        public DateTime CreationTime { get; set; }
     }
 }

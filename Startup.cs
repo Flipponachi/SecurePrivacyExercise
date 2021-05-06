@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SecurePrivacyExercise.Config;
+using SecurePrivacyExercise.Dto;
 using SecurePrivacyExercise.Services;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,7 @@ namespace SecurePrivacyExercise
                 sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 
             services.AddTransient<StudentService>();
+            services.AddAutoMapper(typeof(MappingProfile));
             services.AddControllers();
         }
 
